@@ -1,8 +1,14 @@
 // Video reference: https://www.youtube.com/watposeIo-DIOkNVg&ab_channel=TheCodingTrain
 
 let video;
+let videoTwo;
 let poseNet;
 let pose;
+let face;
+let faceDetections;
+let faceReady = false;
+let faceTrack;
+let facePoints = [];
 
 let reverb = new Tone.Freeverb(0.4).toDestination();
 let vibrato = new Tone.Vibrato(3, 0.3).connect(reverb);
@@ -25,9 +31,24 @@ let synthTwo = new Tone.PolySynth({
 function setup() {
   createCanvas(640, 480);
   video = createCapture(VIDEO);
+  videoTwo = createCapture(VIDEO);
   video.hide();
+  videoTwo.hide();
   poseNet = ml5.poseNet(video, modelLoaded);
   poseNet.on("pose", gotPoses);
+  const faceOptions = {
+    withLandmarks: true,
+    withExpressions: false,
+    withDescriptors: false,
+  };
+  faceTrack = ml5.faceApi(videoTwo, faceOptions, faceApiLoaded);
+  // face = ml5.facemesh(videoTwo, facemeshLoaded);
+  // face.on("predict", gotFace);
+}
+
+// Does something when PoseNet is loaded
+function modelLoaded() {
+  console.log("PoseNet is ready!");
 }
 
 // Puts the poses from PoseNet in the variable "pose"
@@ -39,10 +60,28 @@ function gotPoses(poses) {
   }
 }
 
-// Does something when PoseNet is loaded
-function modelLoaded() {
-  console.log("PoseNet is ready!");
+function faceApiLoaded() {
+  console.log("faceApi is ready!");
+  faceTrack.detect(gotFace);
 }
+
+function gotFace(error, result) {
+  // if (error) {
+  //   console.log("faceApi error");
+  // }
+  // faceDetections = result;
+  // console.log(faceDetections);
+  // faceReady = true;
+
+  facepoints = result;
+  // console.log(facepoints);
+  faceReady = true;
+  faceTrack.detect(gotFace);
+}
+
+// function facemeshLoaded() {
+//   console.log("facemesh is ready!");
+// }
 
 // Starts Tone.js
 window.addEventListener("click", function () {
@@ -70,12 +109,44 @@ window.addEventListener("keydown", (event) => {
 
 let synthIsPlaying = false;
 
+// from https://editor.p5js.org/tlsaeger/sketches/bGBDeBsVv
+// function drawKeypoints() {
+//   for (let i = 0; i < faceDetections.length; i += 1) {
+//     const keypoints = faceDetections[i].scaledMesh;
+
+//     //Now we can really draw the keypoints by looping trough the array
+//     for (let j = 0; j < keypoints.length; j += 1) {
+//       const [x, y, z] = keypoints[j];
+
+//       //We set  the colorMode to HSB in the beginning this will help us now. We can use fixed values for hue and saturation. Then we convert the values from the z axis, they range from about -70 to 70, to range from 100 to 0, so we can use them as third argument for the brightness.
+//       fill(200, 100, map(z, -70, 70, 100, 0));
+//       //Finally we draw the ellipse at the x/y coordinates which Facemesh provides to us
+//       ellipse(x, y, 10);
+//     }
+//   }
+// }
+
+// https://editor.p5js.org/ima_ml/sketches/fCsz7tb6w
+function drawFacePoints() {
+  if (facepoints.length) {
+    console.log(facepoints[0]);
+    // console.log(facepoints[0].parts.mouth);
+
+    ellipse(facepoints[0].parts.mouth[3].x, facepoints[0].parts.mouth[3].y, 10);
+    ellipse(facepoints[0].parts.mouth[9].x, facepoints[0].parts.mouth[9].y, 10);
+  }
+}
+
 function draw() {
   background(220);
   translate(width, 0);
   scale(-1, 1);
   image(video, 0, 0);
 
+  if (faceReady) {
+    // drawKeypoints();
+    drawFacePoints();
+  }
   // if (Tone.Transport.state === "started" && !synthIsPlaying) {
   //   synthIsPlaying = true;
 
@@ -96,7 +167,7 @@ function draw() {
       rightWrist.x,
       rightWrist.y
     );
-    synthOne.set({ detune: wristDist });
+    synthOne.set({ detune: wristDist * 2 });
 
     if (Tone.Transport.state === "started") {
       if (leftWrist.confidence > 0.3 && !synthIsPlaying) {
