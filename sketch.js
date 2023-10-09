@@ -7,8 +7,8 @@ let pose;
 let face;
 let faceDetections;
 let faceReady = false;
-let faceTrack;
-let facePoints = [];
+// let faceTrack;
+// let facePoints = [];
 
 let reverb = new Tone.Freeverb(0.4).toDestination();
 let vibrato = new Tone.Vibrato(3, 0.3).connect(reverb);
@@ -36,14 +36,14 @@ function setup() {
   videoTwo.hide();
   poseNet = ml5.poseNet(video, modelLoaded);
   poseNet.on("pose", gotPoses);
-  const faceOptions = {
-    withLandmarks: true,
-    withExpressions: false,
-    withDescriptors: false,
-  };
-  faceTrack = ml5.faceApi(videoTwo, faceOptions, faceApiLoaded);
-  // face = ml5.facemesh(videoTwo, facemeshLoaded);
-  // face.on("predict", gotFace);
+  // const faceOptions = {
+  //   withLandmarks: true,
+  //   withExpressions: false,
+  //   withDescriptors: false,
+  // };
+  // faceTrack = ml5.faceApi(videoTwo, faceOptions, faceApiLoaded);
+  face = ml5.facemesh(videoTwo, facemeshLoaded);
+  face.on("predict", gotFace);
 }
 
 // Does something when PoseNet is loaded
@@ -60,28 +60,28 @@ function gotPoses(poses) {
   }
 }
 
-function faceApiLoaded() {
-  console.log("faceApi is ready!");
-  faceTrack.detect(gotFace);
-}
+// function faceApiLoaded() {
+//   console.log("faceApi is ready!");
+//   faceTrack.detect(gotFace);
+// }
 
-function gotFace(error, result) {
+function gotFace(result) {
   // if (error) {
   //   console.log("faceApi error");
   // }
-  // faceDetections = result;
-  // console.log(faceDetections);
-  // faceReady = true;
-
-  facepoints = result;
-  // console.log(facepoints);
+  faceDetections = result;
+  console.log(faceDetections);
   faceReady = true;
-  faceTrack.detect(gotFace);
+
+  // facepoints = result;
+  // // console.log(facepoints);
+  // faceReady = true;
+  // faceTrack.detect(gotFace);
 }
 
-// function facemeshLoaded() {
-//   console.log("facemesh is ready!");
-// }
+function facemeshLoaded() {
+  console.log("facemesh is ready!");
+}
 
 // Starts Tone.js
 window.addEventListener("click", function () {
@@ -110,21 +110,30 @@ window.addEventListener("keydown", (event) => {
 let synthIsPlaying = false;
 
 // from https://editor.p5js.org/tlsaeger/sketches/bGBDeBsVv
-// function drawKeypoints() {
-//   for (let i = 0; i < faceDetections.length; i += 1) {
-//     const keypoints = faceDetections[i].scaledMesh;
+function drawKeypoints() {
+  if (faceDetections.length) {
+    ellipse(
+      faceDetections[0].annotations.lipsLowerInner[5][0],
+      faceDetections[0].annotations.lipsLowerInner[5][1],
+      10
+    );
+    ellipse(
+      faceDetections[0].annotations.lipsUpperInner[5][0],
+      faceDetections[0].annotations.lipsUpperInner[5][1],
+      10
+    );
 
-//     //Now we can really draw the keypoints by looping trough the array
-//     for (let j = 0; j < keypoints.length; j += 1) {
-//       const [x, y, z] = keypoints[j];
+    //Now we can really draw the keypoints by looping trough the array
+    // for (let i = 0; i < keypoints.length; i += 1) {
+    //   const [x, y, z] = keypoints[i];
 
-//       //We set  the colorMode to HSB in the beginning this will help us now. We can use fixed values for hue and saturation. Then we convert the values from the z axis, they range from about -70 to 70, to range from 100 to 0, so we can use them as third argument for the brightness.
-//       fill(200, 100, map(z, -70, 70, 100, 0));
-//       //Finally we draw the ellipse at the x/y coordinates which Facemesh provides to us
-//       ellipse(x, y, 10);
-//     }
-//   }
-// }
+    //   //We set  the colorMode to HSB in the beginning this will help us now. We can use fixed values for hue and saturation. Then we convert the values from the z axis, they range from about -70 to 70, to range from 100 to 0, so we can use them as third argument for the brightness.
+    //   fill(0);
+    //   //Finally we draw the ellipse at the x/y coordinates which Facemesh provides to us
+    //   ellipse(x, y, 10);
+    // }
+  }
+}
 
 // https://editor.p5js.org/ima_ml/sketches/fCsz7tb6w
 function drawFacePoints() {
@@ -144,8 +153,8 @@ function draw() {
   image(video, 0, 0);
 
   if (faceReady) {
-    // drawKeypoints();
-    drawFacePoints();
+    drawKeypoints();
+    //drawFacePoints();
   }
   // if (Tone.Transport.state === "started" && !synthIsPlaying) {
   //   synthIsPlaying = true;
