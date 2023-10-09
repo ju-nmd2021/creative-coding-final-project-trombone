@@ -46,6 +46,9 @@ function setup() {
   face.on("predict", gotFace);
 }
 
+// Remove some tone.js delay supposedly
+Tone.context.latencyHint = 0;
+
 // Does something when PoseNet is loaded
 function modelLoaded() {
   console.log("PoseNet is ready!");
@@ -60,30 +63,16 @@ function gotPoses(poses) {
   }
 }
 
-// function faceApiLoaded() {
-//   console.log("faceApi is ready!");
-//   faceTrack.detect(gotFace);
-// }
-
 function gotFace(result) {
-  // if (error) {
-  //   console.log("faceApi error");
-  // }
   faceDetections = result;
-  console.log(faceDetections);
   faceReady = true;
-
-  // facepoints = result;
-  // // console.log(facepoints);
-  // faceReady = true;
-  // faceTrack.detect(gotFace);
 }
 
 function facemeshLoaded() {
   console.log("facemesh is ready!");
 }
 
-// Starts Tone.js
+// Starts Tone.js when clicking the screen
 window.addEventListener("click", function () {
   Tone.Transport.start();
   Tone.start();
@@ -109,40 +98,62 @@ window.addEventListener("keydown", (event) => {
 
 let synthIsPlaying = false;
 
-// from https://editor.p5js.org/tlsaeger/sketches/bGBDeBsVv
-function drawKeypoints() {
+// Change volume depending on mouth opening
+function playTrombone() {
   if (faceDetections.length) {
-    ellipse(
+    // Draw face mouth points
+    // ellipse(
+    //   faceDetections[0].annotations.lipsLowerInner[5][0],
+    //   faceDetections[0].annotations.lipsLowerInner[5][1],
+    //   10
+    // );
+    // ellipse(
+    //   faceDetections[0].annotations.lipsUpperInner[5][0],
+    //   faceDetections[0].annotations.lipsUpperInner[5][1],
+    //   10
+    // );
+
+    // ellipse(
+    //   faceDetections[0].annotations.lipsUpperInner[0][0],
+    //   faceDetections[0].annotations.lipsUpperInner[0][1],
+    //   10
+    // );
+    // ellipse(
+    //   faceDetections[0].annotations.lipsUpperInner[10][0],
+    //   faceDetections[0].annotations.lipsUpperInner[10][1],
+    //   10
+    // );
+
+    // Calculate lip point distances in facemesh
+    verticalLipDist = dist(
       faceDetections[0].annotations.lipsLowerInner[5][0],
       faceDetections[0].annotations.lipsLowerInner[5][1],
-      10
-    );
-    ellipse(
       faceDetections[0].annotations.lipsUpperInner[5][0],
-      faceDetections[0].annotations.lipsUpperInner[5][1],
-      10
+      faceDetections[0].annotations.lipsUpperInner[5][1]
+    );
+    horizontalLipDist = dist(
+      faceDetections[0].annotations.lipsUpperInner[0][0],
+      faceDetections[0].annotations.lipsUpperInner[0][1],
+      faceDetections[0].annotations.lipsUpperInner[10][0],
+      faceDetections[0].annotations.lipsUpperInner[10][1]
     );
 
-    //Now we can really draw the keypoints by looping trough the array
-    // for (let i = 0; i < keypoints.length; i += 1) {
-    //   const [x, y, z] = keypoints[i];
+    // Play and stop trombone synth depending on mouth open and close
+    if (Tone.Transport.state === "started") {
+      if (verticalLipDist / horizontalLipDist > 0.1 && !synthIsPlaying) {
+        console.log("Trombone-on my brother!");
+        synthOne.triggerAttack(["C3"]);
 
-    //   //We set  the colorMode to HSB in the beginning this will help us now. We can use fixed values for hue and saturation. Then we convert the values from the z axis, they range from about -70 to 70, to range from 100 to 0, so we can use them as third argument for the brightness.
-    //   fill(0);
-    //   //Finally we draw the ellipse at the x/y coordinates which Facemesh provides to us
-    //   ellipse(x, y, 10);
-    // }
-  }
-}
+        synthIsPlaying = true;
+      } else if (verticalLipDist / horizontalLipDist < 0.1 && synthIsPlaying) {
+        synthOne.triggerRelease(["C3"]);
+        synthIsPlaying = false;
+        console.log("Trombone be gone!");
+      }
 
-// https://editor.p5js.org/ima_ml/sketches/fCsz7tb6w
-function drawFacePoints() {
-  if (facepoints.length) {
-    console.log(facepoints[0]);
-    // console.log(facepoints[0].parts.mouth);
-
-    ellipse(facepoints[0].parts.mouth[3].x, facepoints[0].parts.mouth[3].y, 10);
-    ellipse(facepoints[0].parts.mouth[9].x, facepoints[0].parts.mouth[9].y, 10);
+      // Set volume depending on how open the mouth is
+      synthOne.volume.value = 10 * (verticalLipDist / horizontalLipDist) - 10;
+    }
   }
 }
 
@@ -153,8 +164,7 @@ function draw() {
   image(video, 0, 0);
 
   if (faceReady) {
-    drawKeypoints();
-    //drawFacePoints();
+    playTrombone();
   }
   // if (Tone.Transport.state === "started" && !synthIsPlaying) {
   //   synthIsPlaying = true;
@@ -162,12 +172,6 @@ function draw() {
   //   synthTwo.triggerAttack(["C4", "D2"], "4n");
   // }
   if (pose) {
-    // let eyeR = pose.rightEye;
-    // let eyeL = pose.leftEye;
-    // let eyeDistance = dist(eyeR.x, eyeR.y, eyeL.x, eyeL.y);
-    // fill(255);
-    // ellipse(pose.nose.x, pose.nose.y, eyeDistance);
-
     const leftWrist = pose.leftWrist;
     const rightWrist = pose.rightWrist;
     const wristDist = dist(
@@ -178,17 +182,17 @@ function draw() {
     );
     synthOne.set({ detune: wristDist * 2 });
 
-    if (Tone.Transport.state === "started") {
-      if (leftWrist.confidence > 0.3 && !synthIsPlaying) {
-        console.log("Trombone-on my brother!");
-        synthOne.triggerAttack(["C3"]);
-        synthIsPlaying = true;
-      } else if (leftWrist.confidence < 0.3 && synthIsPlaying) {
-        synthOne.triggerRelease(["C3"]);
-        synthIsPlaying = false;
-        console.log("Trombone away!");
-      }
-    }
+    // if (Tone.Transport.state === "started") {
+    //   if (leftWrist.confidence > 0.3 && !synthIsPlaying) {
+    //     console.log("Trombone-on my brother!");
+    //     synthOne.triggerAttack(["C3"]);
+    //     synthIsPlaying = true;
+    //   } else if (leftWrist.confidence < 0.3 && synthIsPlaying) {
+    //     synthOne.triggerRelease(["C3"]);
+    //     synthIsPlaying = false;
+    //     console.log("Trombone away!");
+    //   }
+    // }
 
     fill(255);
     // ellipse(pose.nose.x, pose.nose.y, eyeDistance);
