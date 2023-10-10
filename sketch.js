@@ -174,6 +174,8 @@ function draw() {
 
   //   synthTwo.triggerAttack(["C4", "D2"], "4n");
   // }
+
+  // If posenet has got something then drawtrombone and detune trombone synth
   if (pose) {
     const leftWrist = pose.leftWrist;
     const rightWrist = pose.rightWrist;
@@ -183,59 +185,37 @@ function draw() {
       rightWrist.x,
       rightWrist.y
     );
-    synthOne.set({ detune: wristDist * 2 });
-
     const eyeDist = dist(
       pose.leftEye.x,
       pose.leftEye.y,
       pose.rightEye.x,
       pose.rightEye.y
     );
+    const tromboneSize = eyeDist * 30;
+    const wristAngle =
+      90 - atan2(leftWrist.x - rightWrist.x, leftWrist.y - rightWrist.y);
 
-    const tromboneSize = eyeDist * 10;
+    synthOne.set({ detune: wristDist * 3 });
 
     push();
     imageMode(CENTER);
     translate(leftWrist.x, leftWrist.y);
-    // rotate(-atan2(mouseY - leftWrist.x, mouseX - leftWrist.y));
-
-    // const leftWristVector = createVector(leftWrist.x, leftWrist.y);
-    // const rightWristVector = createVector(mouseX, mouseY);
-    // line(
-    //   leftWristVector.x,
-    //   leftWristVector.y,
-    //   rightWristVector.x,
-    //   rightWristVector.y
-    // );
-    // console.log(leftWristVector.angleBetween(rightWristVector));
-    rotate(0);
-    image(imageTromboneOne, 0, 0, tromboneSize, tromboneSize / 3);
+    rotate(wristAngle);
+    image(imageTromboneOne, 0, 0, tromboneSize, tromboneSize / 7);
     pop();
 
     push();
     imageMode(CENTER);
     translate(rightWrist.x, rightWrist.y);
-    image(imageTromboneTwo, 0, 0, tromboneSize, tromboneSize / 3);
+    rotate(wristAngle);
+
+    image(imageTromboneTwo, 0, 0, tromboneSize, tromboneSize / 7);
     pop();
 
-    // if (Tone.Transport.state === "started") {
-    //   if (leftWrist.confidence > 0.3 && !synthIsPlaying) {
-    //     console.log("Trombone-on my brother!");
-    //     synthOne.triggerAttack(["C3"]);
-    //     synthIsPlaying = true;
-    //   } else if (leftWrist.confidence < 0.3 && synthIsPlaying) {
-    //     synthOne.triggerRelease(["C3"]);
-    //     synthIsPlaying = false;
-    //     console.log("Trombone away!");
-    //   }
-    // }
-
-    fill(255);
-    // ellipse(pose.nose.x, pose.nose.y, eyeDistance);
-
-    fill(255, 0, 0);
-    ellipse(leftWrist.x, leftWrist.y, 30);
-    fill(0, 255, 0);
-    ellipse(rightWrist.x, rightWrist.y, 30);
+    // Draws ellipses on wrists
+    // fill(255, 0, 0);
+    // ellipse(leftWrist.x, leftWrist.y, 30);
+    // fill(0, 255, 0);
+    // ellipse(rightWrist.x, rightWrist.y, 30);
   }
 }
