@@ -191,7 +191,7 @@ function draw() {
       pose.rightEye.x,
       pose.rightEye.y
     );
-    const tromboneSize = eyeDist * 30;
+    const tromboneSize = eyeDist * 50;
     const wristAngle =
       90 - atan2(leftWrist.x - rightWrist.x, leftWrist.y - rightWrist.y);
 
