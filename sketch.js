@@ -7,8 +7,8 @@ let pose;
 let face;
 let faceDetections;
 let faceReady = false;
-// let faceTrack;
-// let facePoints = [];
+let imageTromboneOne;
+let imageTromboneTwo;
 
 let reverb = new Tone.Freeverb(0.4).toDestination();
 let vibrato = new Tone.Vibrato(3, 0.3).connect(reverb);
@@ -30,6 +30,9 @@ let synthTwo = new Tone.PolySynth({
 
 function setup() {
   createCanvas(640, 480);
+  angleMode(DEGREES);
+  imageTromboneOne = loadImage("images/trombone_partOne_02.png");
+  imageTromboneTwo = loadImage("images/trombone_partTwo_02.png");
   video = createCapture(VIDEO);
   videoTwo = createCapture(VIDEO);
   video.hide();
@@ -181,6 +184,39 @@ function draw() {
       rightWrist.y
     );
     synthOne.set({ detune: wristDist * 2 });
+
+    const eyeDist = dist(
+      pose.leftEye.x,
+      pose.leftEye.y,
+      pose.rightEye.x,
+      pose.rightEye.y
+    );
+
+    const tromboneSize = eyeDist * 10;
+
+    push();
+    imageMode(CENTER);
+    translate(leftWrist.x, leftWrist.y);
+    // rotate(-atan2(mouseY - leftWrist.x, mouseX - leftWrist.y));
+
+    // const leftWristVector = createVector(leftWrist.x, leftWrist.y);
+    // const rightWristVector = createVector(mouseX, mouseY);
+    // line(
+    //   leftWristVector.x,
+    //   leftWristVector.y,
+    //   rightWristVector.x,
+    //   rightWristVector.y
+    // );
+    // console.log(leftWristVector.angleBetween(rightWristVector));
+    rotate(0);
+    image(imageTromboneOne, 0, 0, tromboneSize, tromboneSize / 3);
+    pop();
+
+    push();
+    imageMode(CENTER);
+    translate(rightWrist.x, rightWrist.y);
+    image(imageTromboneTwo, 0, 0, tromboneSize, tromboneSize / 3);
+    pop();
 
     // if (Tone.Transport.state === "started") {
     //   if (leftWrist.confidence > 0.3 && !synthIsPlaying) {
