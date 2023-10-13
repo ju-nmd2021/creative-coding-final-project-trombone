@@ -187,7 +187,7 @@ function playInstruments() {
 // Reduce some latency
 Tone.context.latencyHint = "fastest";
 // Tonejs beats per minute
-Tone.Transport.bpm.value = 100;
+Tone.Transport.bpm.value = 70;
 
 // Drum sequencer
 let sequenceDrums = new Tone.Sequence(
@@ -222,18 +222,24 @@ let pianoMood = {
   chords: cMajChords,
   chordProg: [0, 4, 5, 3],
   chordLength: "16n",
-  chordProgReps: 4,
+  chordProgReps: 2,
   chordProgTimesPlayed: 0,
-  skipChord: 1,
+  chordBeatPlay: 4,
 };
 function setPianoMood() {
-  pianoMood.currentChord = 0;
+  // Probably don't need
+  // pianoMood.currentChord = 0;
   // Get number from something
-  chordReps = "number";
-  chordTimesPlayd = 0;
-  chords = "scale of triads probably";
-  chordProg = "array of four numbersi inside the scale array chords";
-  chordLength = "between like 4n, 8n, and 16n  is probably best";
+  // chordReps = "number";
+  // This migh be done in playPiano() first if-stack
+  // chordTimesPlayd = 0;
+  // chords = "scale of triads probably";
+  // chordProg = "array of four numbersi inside the scale array chords";
+  // chordLength = "between like 4n, 8n, and 16n  is probably best";
+  // Reset chordProgTimesPlayd and set new chordProgReps
+  // pianoMood.chordProgTimesPlayed = 0;
+  // pianoMood.chordProgReps = "how many new reps";
+  // pianoMood.chordBeatPlay = "1, 2 or 4?";
 }
 
 function playPiano() {
@@ -253,26 +259,42 @@ function playPiano() {
   pianoMood.chordTimesPlayed++;
 }
 
+// Every chord repetition
+function lastPianoChord() {
+  pianoMood.chordProgTimesPlayed++;
+  // If the piano has played chords for the set amout of repetitions: change playstyle
+  if (pianoMood.chordProgTimesPlayed >= pianoMood.chordProgReps) {
+    setPianoMood();
+  }
+}
+
 // Play the piano and change how it is played after it has playd a certain amout of repetitions
 let sequencePiano = new Tone.Sequence(
   (time, note) => {
     if (note === 1) {
       playPiano();
+      if (pianoMood.chordBeatPlay === 1) {
+        lastPianoChord();
+      }
     }
     if (note === 2) {
-      playPiano();
+      if (pianoMood.chordBeatPlay === 4) {
+        playPiano();
+      }
     }
     if (note === 3) {
-      playPiano();
+      if (pianoMood.chordBeatPlay === 2) {
+        playPiano();
+        lastPianoChord();
+      } else if (pianoMood.chordBeatPlay === 4) {
+        playPiano();
+      }
     }
     if (note === 4) {
-      playPiano();
-      pianoMood.chordProgTimesPlayed++;
-      if (pianoMood.chordProgTimesPlayed >= pianoMood.chordProgReps) {
-        // setPianoMood()
-        // Goes in setPianoMood I
+      if (pianoMood.chordBeatPlay === 4) {
+        playPiano();
+        lastPianoChord();
       }
-      console.log(pianoMood.chordProgTimesPlayed);
     }
   },
   [1, 2, 3, 4],
