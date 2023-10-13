@@ -49,9 +49,6 @@ function setup() {
   face.on("predict", gotFace);
 }
 
-// Remove some tone.js delay supposedly
-Tone.context.latencyHint = 0;
-
 // Does something when PoseNet is loaded
 function modelLoaded() {
   console.log("PoseNet is ready!");
@@ -160,6 +157,133 @@ function playTrombone() {
   }
 }
 
+// Video tutorial reference: https://www.youtube.com/watch?v=xBQef0fs-_Q&ab_channel=ShaiUI
+let synthDrumsState = false;
+let synthPianoState = false;
+let synthPiano = new Tone.PolySynth({
+  volume: -20,
+}).toDestination();
+let playerKick = new Tone.Player(
+  "https://cdn.jsdelivr.net/gh/Tonejs/Tone.js/examples/audio/505/kick.mp3"
+).toDestination();
+let playerSnare = new Tone.Player(
+  "https://cdn.jsdelivr.net/gh/Tonejs/Tone.js/examples/audio/505/snare.mp3"
+).toDestination();
+let playerHihat = new Tone.Player(
+  "https://cdn.jsdelivr.net/gh/Tonejs/Tone.js/examples/audio/505/hh.mp3"
+).toDestination();
+
+function playInstruments() {
+  // if (!synthPianoState) {
+  //   synthPianoState = true;
+  //   synthPiano.triggerAttackRelease("C4", "4n");
+  // }
+  // if (!synthDrumsState) {
+  //   synthDrumsState = true;
+  //   playerHihat.start();
+  // }
+}
+
+// Reduce some latency
+Tone.context.latencyHint = "fastest";
+// Tonejs beats per minute
+Tone.Transport.bpm.value = 100;
+
+// Drum sequencer
+let sequenceDrums = new Tone.Sequence(
+  (time, note) => {
+    if (note === 1) {
+      playerKick.start();
+    }
+    if (note === 3) {
+      playerSnare.start();
+    }
+    playerHihat.start();
+  },
+  [1, 2, 3, 4],
+  "8n"
+).start();
+
+// Chords (triads) in the C major scale
+const cMajChords = [
+  ["C3", "E3", "G3"],
+  ["D3", "F3", "A3"],
+  ["E3", "G3", "B3"],
+  ["F3", "A3", "C3"],
+  ["G3", "B3", "D3"],
+  ["A3", "C3", "E3"],
+];
+
+// Variables that effect the pianos playing
+let pianoMood = {
+  currentChord: 0,
+  chordReps: 2,
+  chordTimesPlayed: 0,
+  chords: cMajChords,
+  chordProg: [0, 4, 5, 3],
+  chordLength: "16n",
+  chordProgReps: 4,
+  chordProgTimesPlayed: 0,
+  skipChord: 1,
+};
+function setPianoMood() {
+  pianoMood.currentChord = 0;
+  // Get number from something
+  chordReps = "number";
+  chordTimesPlayd = 0;
+  chords = "scale of triads probably";
+  chordProg = "array of four numbersi inside the scale array chords";
+  chordLength = "between like 4n, 8n, and 16n  is probably best";
+}
+
+function playPiano() {
+  // Piano chords plays the right amount of repetitions
+  if (pianoMood.chordTimesPlayed >= pianoMood.chordReps) {
+    pianoMood.currentChord++;
+    if (pianoMood.currentChord >= pianoMood.chordProg.length) {
+      pianoMood.currentChord = 0;
+    }
+    pianoMood.chordTimesPlayed = 0;
+  }
+  // Play chord
+  synthPiano.triggerAttackRelease(
+    pianoMood.chords[pianoMood.chordProg[pianoMood.currentChord]],
+    pianoMood.chordLength
+  );
+  pianoMood.chordTimesPlayed++;
+}
+
+// Play the piano and change how it is played after it has playd a certain amout of repetitions
+let sequencePiano = new Tone.Sequence(
+  (time, note) => {
+    if (note === 1) {
+      playPiano();
+    }
+    if (note === 2) {
+      playPiano();
+    }
+    if (note === 3) {
+      playPiano();
+    }
+    if (note === 4) {
+      playPiano();
+      pianoMood.chordProgTimesPlayed++;
+      if (pianoMood.chordProgTimesPlayed >= pianoMood.chordProgReps) {
+        // setPianoMood()
+        // Goes in setPianoMood I
+      }
+      console.log(pianoMood.chordProgTimesPlayed);
+    }
+  },
+  [1, 2, 3, 4],
+  "8n"
+);
+
+if (Tone.Transport.state === "started") {
+  // sequenceDrums;
+  // sequencePiano;
+}
+
 function draw() {
   background(220);
   translate(width, 0);
@@ -169,11 +293,10 @@ function draw() {
   if (faceReady) {
     playTrombone();
   }
-  // if (Tone.Transport.state === "started" && !synthIsPlaying) {
-  //   synthIsPlaying = true;
 
-  //   synthTwo.triggerAttack(["C4", "D2"], "4n");
-  // }
+  if (Tone.Transport.state === "started") {
+    sequencePiano.start();
+  }
 
   // If posenet has got something then drawtrombone and detune trombone synth
   if (pose) {
