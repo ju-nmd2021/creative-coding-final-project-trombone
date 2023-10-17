@@ -186,7 +186,6 @@ function playInstruments() {
 // Reduce some latency
 Tone.context.latencyHint = "fastest";
 // Tonejs beats per minute
-Tone.Transport.bpm.value = 70;
 
 // Drum sequencer
 let sequenceDrums = new Tone.Sequence(
@@ -300,7 +299,7 @@ let moodData = {
   highNotesPlayTime: 0, // How long has "high" "trombone" notes been played
   minimumBpm: 60,
   maximumBpm: 120,
-  tempoChange: 5,
+  tempoChange: 1,
 };
 
 // Variables that effect the pianos playing
@@ -311,25 +310,46 @@ let pianoMood = {
   chords: pianoChords.dMajChords,
   chordProg: [0, 1, 3, 4],
   chordLength: "16n",
-  chordProgReps: 2,
+  chordProgReps: 4,
   chordProgTimesPlayed: 0,
   chordBeatPlay: 4,
 };
+
+function setBaseBpm() {
+  return moodData.minimumBpm + moodData.currentDate;
+}
+
+function mostPlayedNotes() {
+  if (moodData.lowNotesPlayTime === moodData.highNotesPlayTime) {
+    return;
+  } else if (moodData.lowNotesPlayTime > moodData.highNotesPlayTime) {
+    return "low";
+  } else if (moodData.lowNotesPlayTime < moodData.highNotesPlayTime) {
+    return "high";
+  }
+}
+
 function setPianoMood() {
   // BPM
-  const newBpm = moodData.minimumBpm;
-  newBpm += moodData.currentDate;
-  if (moodData.lowNotesPlayTime > moodData.highNotesPlayTime) {
-    newBpm += moodData.tempoChange;
-  } else if (moodData.lowNotesPlayTime < moodData.highNotesPlayTime) {
+  let newBpm = Tone.Transport.bpm.value;
+  if (mostPlayedNotes() == "low") {
     newBpm -= moodData.tempoChange;
+  } else if (mostPlayedNotes() == "high") {
+    newBpm += moodData.tempoChange;
+  }
+  if (newBpm < moodData.minimumBpm) {
+    newBpm = moodData.minimumBpm;
+  } else if (newBpm > moodData.maximumBpm) {
+    newBpm = moodData.maximumBpm;
   }
   Tone.Transport.bpm.value = newBpm;
 
   // Probably don't need
   // pianoMood.currentChord = 0;
   // Get number from something
-  // chordReps = "number (1 - 4)";
+
+  // Chord repetitions
+  chordReps = "number (1 - 4)";
   // This migh be done in playPiano() first if-stack
   // chordTimesPlayd = 0;
   // chords = "scale of triads probably";
@@ -404,6 +424,9 @@ let sequencePiano = new Tone.Sequence(
   [1, 2, 3, 4],
   "8n"
 );
+
+// set base BPM
+Tone.Transport.bpm.value = setBaseBpm();
 
 function draw() {
   background(220);
