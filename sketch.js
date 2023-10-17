@@ -97,7 +97,6 @@ window.addEventListener("keydown", (event) => {
 });
 
 let synthIsPlaying = false;
-
 // Change volume depending on mouth opening
 function playTrombone() {
   if (faceDetections.length) {
@@ -202,35 +201,135 @@ let sequenceDrums = new Tone.Sequence(
   },
   [1, 2, 3, 4],
   "8n"
-).start();
+);
 
-// Chords (triads) in the C major scale
-const cMajChords = [
-  ["C3", "E3", "G3"],
-  ["D3", "F3", "A3"],
-  ["E3", "G3", "B3"],
-  ["F3", "A3", "C3"],
-  ["G3", "B3", "D3"],
-  ["A3", "C3", "E3"],
-];
+// Diatonic chords
+const pianoChords = {
+  // C major
+  cMajChords: [
+    ["C3", "E3", "G3"],
+    ["D3", "F3", "A3"],
+    ["E3", "G3", "B3"],
+    ["F3", "A3", "C3"],
+    ["G3", "B3", "D3"],
+    ["A3", "C3", "E3"],
+  ],
+  // C minor
+  cMinChords: [
+    ["G2", "Eb3", "C3"],
+    ["Ab2", "F3", "D3"],
+    ["Bb2", "G3", "Eb3"],
+    ["C2", "Ab3", "F3"],
+    ["D2", "Bb3", "G3"],
+    ["Eb2", "C3", "Ab3"],
+  ],
+  // D major
+  dMajChords: [
+    ["D2", "F#3", "A3"],
+    ["E3", "G3", "B3"],
+    ["F#3", "A3", "C#3"],
+    ["G3", "B3", "D4"],
+    ["A2", "C#3", "E3"],
+    ["B3", "D3", "F#3"],
+  ],
+  // D minor
+  dMinChords: [
+    ["A3", "F3", "D3"],
+    ["Bb3", "G3", "E3"],
+    ["C3", "A3", "F3"],
+    ["D3", "Bb3", "G3"],
+    ["E3", "C3", "A3"],
+    ["F3", "D3", "Bb3"],
+  ],
+  // E major
+  eMajChords: [
+    ["B3", "G#3", "E3"],
+    ["C#3", "A3", "F#3"],
+    ["D#3", "B3", "G#3"],
+    ["E3", "C#3", "A3"],
+    ["F#3", "D#3", "B3"],
+    ["G#3", "E3", "C#3"],
+  ],
+  // E minor
+  eMinChords: [
+    ["B3", "G3", "E3"],
+    ["C3", "A3", "F#3"],
+    ["D3", "B3", "G3"],
+    ["E3", "C3", "A3"],
+    ["F#3", "D3", "B3"],
+    ["G3", "E3", "C3"],
+  ],
+  // F major
+  fMajChords: [
+    ["D3", "F#3", "A3"],
+    ["E3", "G3", "B3"],
+    ["F#3", "A3", "C#3"],
+    ["G3", "B3", "D3"],
+    ["A3", "C#3", "E3"],
+    ["B3", "D3", "F#3"],
+  ],
+  // F minor
+  fMinChords: [
+    ["C3", "Ab3", "F3"],
+    ["Db3", "Bb3", "G3"],
+    ["Eb3", "C3", "Ab3"],
+    ["F3", "Db3", "Bb3"],
+    ["G3", "Eb3", "C3"],
+    ["Ab3", "F3", "Db3"],
+  ],
+  // Jazzy chords from: https://www.openstudiojazz.com/5-easy-jazz-piano-chords-that-sound-great
+  jazzyChords: [
+    ["C3", "E3", "A3", "D4", "G4"],
+    ["C3", "Eb3", "Bb3", "D4", "F4"],
+    ["C3", "E3", "Bb3", "D4", "G4"],
+    ["C3", "E3", "Bb3", "D4", "F#4"],
+    ["C3", "E3", "Bb3", "D#4", "G4"],
+  ],
+};
+
+const dateData = new Date();
+
+// Variables that can influence the mood
+let moodData = {
+  currentDate: dateData.getDate(), // Todays date
+  currentTime: dateData.getHours(), // The current hour
+  fourCountsPlayed: 0, // How many four counts have been played
+  lowNotesWristDist: 200, // Maximum wrist distance for a not to qualify as low
+  highNotesWristDist: 400, // Minmum wrist distance for a not to qualify as high
+  lowNotesPlayTime: 0, // How long has "low" "trombone" notes been played
+  highNotesPlayTime: 0, // How long has "high" "trombone" notes been played
+  minimumBpm: 60,
+  maximumBpm: 120,
+  tempoChange: 5,
+};
 
 // Variables that effect the pianos playing
 let pianoMood = {
   currentChord: 0,
-  chordReps: 2,
+  chordReps: 3,
   chordTimesPlayed: 0,
-  chords: cMajChords,
-  chordProg: [0, 4, 5, 3],
+  chords: pianoChords.dMajChords,
+  chordProg: [0, 1, 3, 4],
   chordLength: "16n",
   chordProgReps: 2,
   chordProgTimesPlayed: 0,
   chordBeatPlay: 4,
 };
 function setPianoMood() {
+  // BPM
+  const newBpm = moodData.minimumBpm;
+  newBpm += moodData.currentDate;
+  if (moodData.lowNotesPlayTime > moodData.highNotesPlayTime) {
+    newBpm += moodData.tempoChange;
+  } else if (moodData.lowNotesPlayTime < moodData.highNotesPlayTime) {
+    newBpm -= moodData.tempoChange;
+  }
+  Tone.Transport.bpm.value = newBpm;
+
   // Probably don't need
   // pianoMood.currentChord = 0;
   // Get number from something
-  // chordReps = "number";
+  // chordReps = "number (1 - 4)";
   // This migh be done in playPiano() first if-stack
   // chordTimesPlayd = 0;
   // chords = "scale of triads probably";
@@ -257,6 +356,9 @@ function playPiano() {
     pianoMood.chordLength
   );
   pianoMood.chordTimesPlayed++;
+
+  // TestChord
+  // synthPiano.triggerAttackRelease(["C3", "Eb3", "Bb3", "D4", "F4"], "4n");
 }
 
 // Every chord repetition
@@ -295,16 +397,13 @@ let sequencePiano = new Tone.Sequence(
         playPiano();
         lastPianoChord();
       }
+      // Record playing data for future "mood" changes
+      moodData.fourCountsPlayed++;
     }
   },
   [1, 2, 3, 4],
   "8n"
 );
-
-if (Tone.Transport.state === "started") {
-  // sequenceDrums;
-  // sequencePiano;
-}
 
 function draw() {
   background(220);
@@ -312,12 +411,13 @@ function draw() {
   scale(-1, 1);
   image(video, 0, 0);
 
-  if (faceReady) {
-    playTrombone();
+  if (Tone.Transport.state === "started") {
+    sequenceDrums.start();
+    sequencePiano.start();
   }
 
-  if (Tone.Transport.state === "started") {
-    sequencePiano.start();
+  if (faceReady) {
+    playTrombone();
   }
 
   // If posenet has got something then drawtrombone and detune trombone synth
@@ -341,6 +441,15 @@ function draw() {
       90 - atan2(leftWrist.x - rightWrist.x, leftWrist.y - rightWrist.y);
 
     synthOne.set({ detune: wristDist * 3 });
+
+    // Record playing data for future "mood" changes
+    if (synthIsPlaying) {
+      if (wristDist <= moodData.lowNotesWristDist) {
+        moodData.lowNotesPlayTime++;
+      } else if (wristDist >= moodData.highNotesWristDist) {
+        moodData.highNotesPlayTime++;
+      }
+    }
 
     push();
     imageMode(CENTER);
