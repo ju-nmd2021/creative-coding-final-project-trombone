@@ -56,7 +56,6 @@ function modelLoaded() {
 
 // Puts the poses from PoseNet in the variable "pose"
 function gotPoses(poses) {
-  // console.log(poses);
   if (poses.length) {
     pose = poses[0].pose;
     // Confidence score here?
@@ -140,14 +139,14 @@ function playTrombone() {
     // Play and stop trombone synth depending on mouth open and close
     if (Tone.Transport.state === "started") {
       if (verticalLipDist / horizontalLipDist > 0.1 && !synthIsPlaying) {
-        console.log("Trombone-on my brother!");
+        // console.log("Trombone-on my brother!");
         synthOne.triggerAttack(["C3"]);
 
         synthIsPlaying = true;
       } else if (verticalLipDist / horizontalLipDist < 0.1 && synthIsPlaying) {
+        // console.log("Trombone be gone!");
         synthOne.triggerRelease(["C3"]);
         synthIsPlaying = false;
-        console.log("Trombone be gone!");
       }
 
       // Set volume depending on how open the mouth is
@@ -349,7 +348,9 @@ function setPianoMood() {
   // Get number from something
 
   // Chord repetitions
-  chordReps = "number (1 - 4)";
+  let newChordReps = 1 + floor(noise(0.4 * moodData.fourCountsPlayed) * 4);
+  pianoMood.chordReps = newChordReps;
+  console.log(pianoMood.chordReps);
   // This migh be done in playPiano() first if-stack
   // chordTimesPlayd = 0;
   // chords = "scale of triads probably";
