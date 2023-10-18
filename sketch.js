@@ -13,6 +13,8 @@ let imageTromboneTwo;
 let reverb = new Tone.Freeverb(0.4).toDestination();
 let vibrato = new Tone.Vibrato(3, 0.3).connect(reverb);
 
+const dateData = new Date();
+
 let synthOne = new Tone.PolySynth({
   oscillator: {
     type: "sine",
@@ -73,6 +75,8 @@ function facemeshLoaded() {
 
 // Starts Tone.js when clicking the screen
 window.addEventListener("click", function () {
+  setNewPossibleChordLengths();
+  setPianoMood();
   Tone.Transport.start();
   Tone.start();
 });
@@ -202,9 +206,9 @@ let sequenceDrums = new Tone.Sequence(
 );
 
 // Diatonic chords
-const pianoChords = {
+const pianoChordsMajor = [
   // C major
-  cMajChords: [
+  [
     ["C3", "E3", "G3"],
     ["D3", "F3", "A3"],
     ["E3", "G3", "B3"],
@@ -212,17 +216,8 @@ const pianoChords = {
     ["G3", "B3", "D3"],
     ["A3", "C3", "E3"],
   ],
-  // C minor
-  cMinChords: [
-    ["G2", "Eb3", "C3"],
-    ["Ab2", "F3", "D3"],
-    ["Bb2", "G3", "Eb3"],
-    ["C2", "Ab3", "F3"],
-    ["D2", "Bb3", "G3"],
-    ["Eb2", "C3", "Ab3"],
-  ],
   // D major
-  dMajChords: [
+  [
     ["D2", "F#3", "A3"],
     ["E3", "G3", "B3"],
     ["F#3", "A3", "C#3"],
@@ -230,17 +225,8 @@ const pianoChords = {
     ["A2", "C#3", "E3"],
     ["B3", "D3", "F#3"],
   ],
-  // D minor
-  dMinChords: [
-    ["A3", "F3", "D3"],
-    ["Bb3", "G3", "E3"],
-    ["C3", "A3", "F3"],
-    ["D3", "Bb3", "G3"],
-    ["E3", "C3", "A3"],
-    ["F3", "D3", "Bb3"],
-  ],
   // E major
-  eMajChords: [
+  [
     ["B3", "G#3", "E3"],
     ["C#3", "A3", "F#3"],
     ["D#3", "B3", "G#3"],
@@ -248,17 +234,8 @@ const pianoChords = {
     ["F#3", "D#3", "B3"],
     ["G#3", "E3", "C#3"],
   ],
-  // E minor
-  eMinChords: [
-    ["B3", "G3", "E3"],
-    ["C3", "A3", "F#3"],
-    ["D3", "B3", "G3"],
-    ["E3", "C3", "A3"],
-    ["F#3", "D3", "B3"],
-    ["G3", "E3", "C3"],
-  ],
   // F major
-  fMajChords: [
+  [
     ["D3", "F#3", "A3"],
     ["E3", "G3", "B3"],
     ["F#3", "A3", "C#3"],
@@ -266,8 +243,38 @@ const pianoChords = {
     ["A3", "C#3", "E3"],
     ["B3", "D3", "F#3"],
   ],
+];
+
+const pianoChordsMinor = [
+  // C minor
+  [
+    ["G2", "Eb3", "C3"],
+    ["Ab2", "F3", "D3"],
+    ["Bb2", "G3", "Eb3"],
+    ["C2", "Ab3", "F3"],
+    ["D2", "Bb3", "G3"],
+    ["Eb2", "C3", "Ab3"],
+  ],
+  // D minor
+  [
+    ["A3", "F3", "D3"],
+    ["Bb3", "G3", "E3"],
+    ["C3", "A3", "F3"],
+    ["D3", "Bb3", "G3"],
+    ["E3", "C3", "A3"],
+    ["F3", "D3", "Bb3"],
+  ],
+  // E minor
+  [
+    ["B3", "G3", "E3"],
+    ["C3", "A3", "F#3"],
+    ["D3", "B3", "G3"],
+    ["E3", "C3", "A3"],
+    ["F#3", "D3", "B3"],
+    ["G3", "E3", "C3"],
+  ],
   // F minor
-  fMinChords: [
+  [
     ["C3", "Ab3", "F3"],
     ["Db3", "Bb3", "G3"],
     ["Eb3", "C3", "Ab3"],
@@ -275,23 +282,27 @@ const pianoChords = {
     ["G3", "Eb3", "C3"],
     ["Ab3", "F3", "Db3"],
   ],
+];
+const pianoChordsJazz = [
   // Jazzy chords from: https://www.openstudiojazz.com/5-easy-jazz-piano-chords-that-sound-great
-  jazzyChords: [
+  [
     ["C3", "E3", "A3", "D4", "G4"],
     ["C3", "Eb3", "Bb3", "D4", "F4"],
     ["C3", "E3", "Bb3", "D4", "G4"],
     ["C3", "E3", "Bb3", "D4", "F#4"],
     ["C3", "E3", "Bb3", "D#4", "G4"],
   ],
-};
-
-const dateData = new Date();
+];
 
 // Variables that can influence the mood
 let moodData = {
   currentDate: dateData.getDate(), // Todays date
   currentTime: dateData.getHours(), // The current hour
   fourCountsPlayed: 0, // How many four counts have been played
+  possiblChordLengths: ["16n", "8n", "4n", "2n"],
+  chordLengthsToPlay: [],
+  chordLengthsSwitch: 0,
+  chordLengthsSwitchCounter: 0,
   lowNotesWristDist: 200, // Maximum wrist distance for a not to qualify as low
   highNotesWristDist: 400, // Minmum wrist distance for a not to qualify as high
   lowNotesPlayTime: 0, // How long has "low" "trombone" notes been played
@@ -306,7 +317,7 @@ let pianoMood = {
   currentChord: 0,
   chordReps: 3,
   chordTimesPlayed: 0,
-  chords: pianoChords.dMajChords,
+  chords: pianoChordsMinor[0],
   chordProg: [0, 1, 3, 4],
   chordLength: "16n",
   chordProgReps: 4,
@@ -328,7 +339,39 @@ function mostPlayedNotes() {
   }
 }
 
+// Return "major" or "minor", chance depending on time of day.
+// Higher chance of major early in the day and a small chance to return "jazzy"
+function playMajorOrMinor() {
+  if (Math.floor(Math.random() * 100) === 1) {
+    return "jazzy";
+  }
+  const randomHour = Math.floor(Math.random() * 24);
+  if (randomHour > moodData.currentTime) {
+    return "major";
+  } else {
+    return "minor";
+  }
+}
+
+function setNewPossibleChordLengths() {
+  moodData.chordLengthsSwitchCounter = 0;
+  moodData.chordLengthsSwitch = 10 + Math.floor(Math.random() * 21);
+  moodData.chordLengthsToPlay = [];
+  for (let i = 0; i < moodData.possiblChordLengths.length; i++) {
+    moodData.chordLengthsToPlay.push(
+      moodData.possiblChordLengths[
+        Math.floor(Math.random() * moodData.possiblChordLengths.length)
+      ]
+    );
+  }
+  console.log(
+    "switching possible chordlengths to: " + moodData.chordLengthsToPlay
+  );
+}
+
 function setPianoMood() {
+  console.log("Setting piano mood");
+
   // BPM
   let newBpm = Tone.Transport.bpm.value;
   if (mostPlayedNotes() == "low") {
@@ -343,23 +386,47 @@ function setPianoMood() {
   }
   Tone.Transport.bpm.value = newBpm;
 
-  // Probably don't need
-  // pianoMood.currentChord = 0;
-  // Get number from something
-
   // Chord repetitions
   let newChordReps = 1 + floor(noise(0.4 * moodData.fourCountsPlayed) * 4);
   pianoMood.chordReps = newChordReps;
-  console.log(pianoMood.chordReps);
-  // This migh be done in playPiano() first if-stack
-  // chordTimesPlayd = 0;
-  // chords = "scale of triads probably";
-  // chordProg = "array of four numbersi inside the scale array chords";
-  // chordLength = "between like 4n, 8n, and 16n  is probably best";
+
+  // What collection of chords to draw on
+  if (playMajorOrMinor() == "major") {
+    // Pick random array from pianoChordsMajor
+    pianoMood.chords =
+      pianoChordsMajor[Math.floor(Math.random() * pianoChordsMajor.length)];
+  } else if (playMajorOrMinor() == "minor") {
+    pianoMood.chords =
+      pianoChordsMinor[Math.floor(Math.random() * pianoChordsMinor.length)];
+  } else if (playMajorOrMinor() == "jazzy") {
+    pianoMood.chords = pianoChordsJazz[0];
+  }
+
+  // Chord progression
+  let newChordProg = [];
+  const nrOfChords = 1 + Math.floor(Math.random() * 4);
+  for (let i = 0; i < nrOfChords; i++) {
+    newChordProg.push(Math.floor(Math.random() * pianoMood.chords.length));
+  }
+  pianoMood.chordProg = newChordProg;
+
+  // ChordLength
+  // Every time fourCountPlayed has reached x * fourLengthsSwitch: change what chord lengths can be played
+  // prettier-ignore
+  if (moodData.chordLengthsSwitchCounter >= moodData.chordLengthsSwitch) {
+    setNewPossibleChordLengths();
+  }
+  pianoMood.chordLength =
+    moodData.chordLengthsToPlay[
+      Math.floor(Math.random() * moodData.chordLengthsToPlay.length)
+    ];
+  console.log("Piano chord length: " + pianoMood.chordLength);
+
   // Reset chordProgTimesPlayd and set new chordProgReps
-  // pianoMood.chordProgTimesPlayed = 0;
-  // pianoMood.chordProgReps = "how many new reps";
-  // pianoMood.chordBeatPlay = "1, 2 or 4?";
+  pianoMood.chordProgTimesPlayed = 0;
+
+  // pianoMood.chordProgReps = "how many new reps"; Random
+  // pianoMood.chordBeatPlay = "1, 2 or 4?"; random
 }
 
 function playPiano() {
@@ -377,9 +444,6 @@ function playPiano() {
     pianoMood.chordLength
   );
   pianoMood.chordTimesPlayed++;
-
-  // TestChord
-  // synthPiano.triggerAttackRelease(["C3", "Eb3", "Bb3", "D4", "F4"], "4n");
 }
 
 // Every chord repetition
@@ -420,6 +484,7 @@ let sequencePiano = new Tone.Sequence(
       }
       // Record playing data for future "mood" changes
       moodData.fourCountsPlayed++;
+      moodData.chordLengthsSwitchCounter++;
     }
   },
   [1, 2, 3, 4],
@@ -436,8 +501,10 @@ function draw() {
   image(video, 0, 0);
 
   if (Tone.Transport.state === "started") {
+    // Start drums and piano
     sequenceDrums.start();
     sequencePiano.start();
+    // Set initial piano mood
   }
 
   if (faceReady) {
