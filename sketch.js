@@ -30,6 +30,8 @@ let synthTwo = new Tone.PolySynth({
   voice: Tone.Synth,
 }).toDestination();
 
+let drumsVolume = new Tone.Volume(-20).toDestination();
+
 function setup() {
   createCanvas(640, 480);
   angleMode(DEGREES);
@@ -46,7 +48,6 @@ function setup() {
   //   withExpressions: false,
   //   withDescriptors: false,
   // };
-  // faceTrack = ml5.faceApi(videoTwo, faceOptions, faceApiLoaded);
   face = ml5.facemesh(videoTwo, facemeshLoaded);
   face.on("predict", gotFace);
 }
@@ -160,35 +161,21 @@ function playTrombone() {
 }
 
 // Video tutorial reference: https://www.youtube.com/watch?v=xBQef0fs-_Q&ab_channel=ShaiUI
-let synthDrumsState = false;
-let synthPianoState = false;
 let synthPiano = new Tone.PolySynth({
   volume: -20,
 }).toDestination();
 let playerKick = new Tone.Player(
   "https://cdn.jsdelivr.net/gh/Tonejs/Tone.js/examples/audio/505/kick.mp3"
-).toDestination();
+).connect(drumsVolume);
 let playerSnare = new Tone.Player(
   "https://cdn.jsdelivr.net/gh/Tonejs/Tone.js/examples/audio/505/snare.mp3"
-).toDestination();
+).connect(drumsVolume);
 let playerHihat = new Tone.Player(
   "https://cdn.jsdelivr.net/gh/Tonejs/Tone.js/examples/audio/505/hh.mp3"
-).toDestination();
-
-function playInstruments() {
-  // if (!synthPianoState) {
-  //   synthPianoState = true;
-  //   synthPiano.triggerAttackRelease("C4", "4n");
-  // }
-  // if (!synthDrumsState) {
-  //   synthDrumsState = true;
-  //   playerHihat.start();
-  // }
-}
+).connect(drumsVolume);
 
 // Reduce some latency
 Tone.context.latencyHint = "fastest";
-// Tonejs beats per minute
 
 // Drum sequencer
 let sequenceDrums = new Tone.Sequence(
@@ -443,7 +430,6 @@ function setPianoMood() {
     newChordBeatPlay = 4;
   }
   pianoMood.chordBeatPlay = newChordBeatPlay;
-  console.log(pianoMood.chordBeatPlay);
 }
 
 function playPiano() {
@@ -548,7 +534,7 @@ function draw() {
     const wristAngle =
       90 - atan2(leftWrist.x - rightWrist.x, leftWrist.y - rightWrist.y);
 
-    synthOne.set({ detune: wristDist * 3 });
+    synthOne.set({ detune: wristDist * 2 });
 
     // Record playing data for future "mood" changes
     if (synthIsPlaying) {
