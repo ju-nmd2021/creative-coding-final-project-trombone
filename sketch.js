@@ -11,9 +11,11 @@ let imageTromboneOne;
 let imageTromboneTwo;
 let poseNetModelLoadedStatus = false;
 let faceMeshLoadedStatus = false;
+let synthIsPlaying = false;
 
-let reverb = new Tone.Freeverb(0.4).toDestination();
+let reverb = new Tone.Freeverb(0.5).toDestination();
 let vibrato = new Tone.Vibrato(3, 0.3).connect(reverb);
+let drumsVolume = new Tone.Volume(-17).toDestination();
 
 const dateData = new Date();
 
@@ -23,16 +25,6 @@ let synthOne = new Tone.PolySynth({
   },
   detune: 0,
 }).connect(vibrato);
-
-let synthTwo = new Tone.PolySynth({
-  polyphony: 1,
-  maxPolyphony: 1,
-  volume: 0,
-  detune: 0,
-  voice: Tone.Synth,
-}).toDestination();
-
-let drumsVolume = new Tone.Volume(-17).toDestination();
 
 function setup() {
   createCanvas(window.innerWidth, 480);
@@ -87,25 +79,6 @@ window.addEventListener("click", function () {
   Tone.start();
 });
 
-// Key-controlls
-// "BUG" repeats keyDown
-window.addEventListener("keydown", (event) => {
-  if (event.key === "h") {
-    synthTwo.triggerAttack("D4", "4n");
-  }
-});
-window.addEventListener("keyup", (event) => {
-  if (event.key === "h") {
-    synthTwo.triggerRelease();
-  }
-});
-window.addEventListener("keydown", (event) => {
-  if (event.key === "s") {
-    synthTwo.triggerRelease();
-  }
-});
-
-let synthIsPlaying = false;
 // Change volume depending on mouth opening
 function playTrombone() {
   if (faceDetections.length) {
