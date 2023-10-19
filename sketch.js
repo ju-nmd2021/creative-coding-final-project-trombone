@@ -9,6 +9,8 @@ let faceDetections;
 let faceReady = false;
 let imageTromboneOne;
 let imageTromboneTwo;
+let poseNetModelLoadedStatus = false;
+let faceMeshLoadedStatus = false;
 
 let reverb = new Tone.Freeverb(0.4).toDestination();
 let vibrato = new Tone.Vibrato(3, 0.3).connect(reverb);
@@ -30,11 +32,12 @@ let synthTwo = new Tone.PolySynth({
   voice: Tone.Synth,
 }).toDestination();
 
-let drumsVolume = new Tone.Volume(-20).toDestination();
+let drumsVolume = new Tone.Volume(-17).toDestination();
 
 function setup() {
-  createCanvas(640, 480);
+  createCanvas(window.innerWidth, 480);
   angleMode(DEGREES);
+  textSize(80);
   imageTromboneOne = loadImage("images/trombone_partOne_02.png");
   imageTromboneTwo = loadImage("images/trombone_partTwo_02.png");
   video = createCapture(VIDEO);
@@ -54,6 +57,7 @@ function setup() {
 
 // Does something when PoseNet is loaded
 function modelLoaded() {
+  poseNetModelLoadedStatus = true;
   console.log("PoseNet is ready!");
 }
 
@@ -71,6 +75,7 @@ function gotFace(result) {
 }
 
 function facemeshLoaded() {
+  faceMeshLoadedStatus = true;
   console.log("facemesh is ready!");
 }
 
@@ -162,7 +167,7 @@ function playTrombone() {
 
 // Video tutorial reference: https://www.youtube.com/watch?v=xBQef0fs-_Q&ab_channel=ShaiUI
 let synthPiano = new Tone.PolySynth({
-  volume: -20,
+  volume: -15,
 }).toDestination();
 let playerKick = new Tone.Player(
   "https://cdn.jsdelivr.net/gh/Tonejs/Tone.js/examples/audio/505/kick.mp3"
@@ -498,10 +503,31 @@ let sequencePiano = new Tone.Sequence(
 Tone.Transport.bpm.value = setBaseBpm();
 
 function draw() {
+  textFont("Comic Neue");
   background(220);
-  translate(width, 0);
+  translate(width - (width - 640) / 2, 0);
   scale(-1, 1);
-  image(video, 0, 0);
+  if (poseNetModelLoadedStatus && faceMeshLoadedStatus) {
+    image(video, 0, 0);
+    if (Tone.Transport.state != "started") {
+      push();
+      strokeWeight(0);
+      fill(200, 200, 200, 200);
+      rect(-width, 0, width * 2, height);
+      pop();
+      push();
+      translate(width, 0);
+      scale(-1, 1);
+      text("Click to start", width / 2 - 100, height / 2 + 20);
+      pop();
+    }
+  } else {
+    push();
+    translate(width, 0);
+    scale(-1, 1);
+    text("Loading", width / 2, height / 2 + 20);
+    pop();
+  }
 
   if (Tone.Transport.state === "started") {
     // Start drums and piano
@@ -545,20 +571,22 @@ function draw() {
       }
     }
 
-    push();
-    imageMode(CENTER);
-    translate(leftWrist.x, leftWrist.y);
-    rotate(wristAngle);
-    image(imageTromboneOne, 0, 0, tromboneSize, tromboneSize / 7);
-    pop();
+    if (Tone.Transport.state === "started") {
+      push();
+      imageMode(CENTER);
+      translate(leftWrist.x, leftWrist.y);
+      rotate(wristAngle);
+      image(imageTromboneOne, 0, 0, tromboneSize, tromboneSize / 7);
+      pop();
 
-    push();
-    imageMode(CENTER);
-    translate(rightWrist.x, rightWrist.y);
-    rotate(wristAngle);
+      push();
+      imageMode(CENTER);
+      translate(rightWrist.x, rightWrist.y);
+      rotate(wristAngle);
 
-    image(imageTromboneTwo, 0, 0, tromboneSize, tromboneSize / 7);
-    pop();
+      image(imageTromboneTwo, 0, 0, tromboneSize, tromboneSize / 7);
+      pop();
+    }
 
     // Draws ellipses on wrists
     // fill(255, 0, 0);
