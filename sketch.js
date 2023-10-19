@@ -420,13 +420,30 @@ function setPianoMood() {
     moodData.chordLengthsToPlay[
       Math.floor(Math.random() * moodData.chordLengthsToPlay.length)
     ];
-  console.log("Piano chord length: " + pianoMood.chordLength);
 
   // Reset chordProgTimesPlayd and set new chordProgReps
   pianoMood.chordProgTimesPlayed = 0;
 
-  // pianoMood.chordProgReps = "how many new reps"; Random
-  // pianoMood.chordBeatPlay = "1, 2 or 4?"; random
+  // For how many four-counts should the chord progression be played
+  let newChordProgReps = 0;
+  if (pianoMood.highNotesPlayTime > pianoMood.lowNotesPlayTime) {
+    newChordProgReps += 4;
+  } else if (pianoMood.highNotesPlayTime < pianoMood.lowNotesPlayTime) {
+    newChordProgReps += 2;
+  }
+  newChordProgReps += Math.floor(Math.random() * 4);
+  if (newChordProgReps % 2 != 0) {
+    newChordProgReps++;
+  }
+  pianoMood.chordProgReps = newChordProgReps;
+
+  // On what beats should the piano play: first, first and third, or all four.
+  let newChordBeatPlay = Math.floor(Math.random() * 3) + 1;
+  if (newChordBeatPlay == 3) {
+    newChordBeatPlay = 4;
+  }
+  pianoMood.chordBeatPlay = newChordBeatPlay;
+  console.log(pianoMood.chordBeatPlay);
 }
 
 function playPiano() {
