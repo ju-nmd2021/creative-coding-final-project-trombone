@@ -493,6 +493,13 @@ let sequencePiano = new Tone.Sequence(
 // set base BPM
 Tone.Transport.bpm.value = setBaseBpm();
 
+// Reload page on keypress
+document.addEventListener("keyup", (event) => {
+  if (event.key == "Enter") {
+    location.reload();
+  }
+});
+
 function draw() {
   textFont("Comic Neue");
   background(220);
@@ -514,9 +521,9 @@ function draw() {
     } else {
       push();
       translate(width, 0);
-      textSize(10);
+      textSize(15);
       scale(-1, 1);
-      text("Press F5 to restart", width / 2 - 100, height / 2 + 20);
+      text("Press ENTER to restart", width / 2 - 100, 20);
       pop();
     }
   } else {
