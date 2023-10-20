@@ -79,7 +79,7 @@ window.addEventListener("click", function () {
   Tone.start();
 });
 
-// Change volume depending on mouth opening
+// Play and Change volume depending on mouth opening
 function playTrombone() {
   if (faceDetections.length) {
     // Draw face mouth points
@@ -208,6 +208,15 @@ const pianoChordsMajor = [
     ["A3", "C#3", "E3"],
     ["B3", "D3", "F#3"],
   ],
+  // G major
+  [
+    ["D4", "B3", "G3"],
+    ["A3", "C4", "E4"],
+    ["B3", "D4", "F#4"],
+    ["C4", "E4", "G4"],
+    ["D4", "F#4", "A4"],
+    ["E4", "G3", "B3"],
+  ],
 ];
 
 const pianoChordsMinor = [
@@ -247,6 +256,15 @@ const pianoChordsMinor = [
     ["G3", "Eb3", "C3"],
     ["Ab3", "F3", "Db3"],
   ],
+  // G minor
+  [
+    ["G3", "Bb3", "D4"],
+    ["A3", "C4", "Eb4"],
+    ["Bb3", "D4", "F4"],
+    ["C4", "Eb4", "G4"],
+    ["D4", "F4", "A3"],
+    ["Eb3", "G3", "Bb3"],
+  ],
 ];
 const pianoChordsJazz = [
   // Jazzy chords from: https://www.openstudiojazz.com/5-easy-jazz-piano-chords-that-sound-great
@@ -268,7 +286,7 @@ let moodData = {
   chordLengthsToPlay: [],
   chordLengthsSwitch: 0,
   chordLengthsSwitchCounter: 0,
-  lowNotesWristDist: 200, // Maximum wrist distance for a not to qualify as low
+  lowNotesWristDist: 230, // Maximum wrist distance for a not to qualify as low
   highNotesWristDist: 400, // Minmum wrist distance for a not to qualify as high
   lowNotesPlayTime: 0, // How long has "low" "trombone" notes been played
   highNotesPlayTime: 0, // How long has "high" "trombone" notes been played
