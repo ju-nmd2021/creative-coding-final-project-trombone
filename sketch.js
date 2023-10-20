@@ -286,7 +286,7 @@ let moodData = {
   chordLengthsToPlay: [],
   chordLengthsSwitch: 0,
   chordLengthsSwitchCounter: 0,
-  lowNotesWristDist: 230, // Maximum wrist distance for a not to qualify as low
+  lowNotesWristDist: 300, // Maximum wrist distance for a not to qualify as low
   highNotesWristDist: 400, // Minmum wrist distance for a not to qualify as high
   lowNotesPlayTime: 0, // How long has "low" "trombone" notes been played
   highNotesPlayTime: 0, // How long has "high" "trombone" notes been played
@@ -510,6 +510,13 @@ function draw() {
       translate(width, 0);
       scale(-1, 1);
       text("Click to start", width / 2 - 100, height / 2 + 20);
+      pop();
+    } else {
+      push();
+      translate(width, 0);
+      textSize(10);
+      scale(-1, 1);
+      text("Press F5 to restart", width / 2 - 100, height / 2 + 20);
       pop();
     }
   } else {
