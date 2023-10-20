@@ -516,14 +516,14 @@ function draw() {
       push();
       translate(width, 0);
       scale(-1, 1);
-      text("Click to start", width / 2 - 100, height / 2 + 20);
+      text("Click to start", width / 2 - 50, height / 2 + 20);
       pop();
     } else {
       push();
       translate(width, 0);
       textSize(15);
       scale(-1, 1);
-      text("Press ENTER to restart", width / 2 - 100, 20);
+      text("Press ENTER to restart", width / 2 - 50, 20);
       pop();
     }
   } else {
